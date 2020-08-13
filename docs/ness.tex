@@ -1,0 +1,270 @@
+\documentclass[aps,groupedaddress]{revtex4}
+\usepackage{amsmath}
+
+\newcommand*{\mat}[1]{\mathbf{#1}}
+\newcommand*{\nullspace}[1]{\mathrm{null}(#1)}
+\newcommand*{\rank}[1]{\mathrm{rank}({#1})}
+\newcommand*{\diag}[1]{\mathrm{diag}({#1})}
+
+\begin{document}
+
+\title{Nonequilibrium steady state analysis}
+
+\author{Huafeng Xu}
+
+\maketitle
+
+\section{Steady state equations}
+
+Consider the following set of $R$ chemical reactions
+\begin{equation}
+\sum_{i=1}^{M} c_{ki} m_i = 0  \text{ for } k=1,2,\dots,R
+\label{eqn:set-of-reactions}
+\end{equation}
+
+In the reactions above, $c_{ki} > 0$ indicates that molecule $m_i$ is
+a reactant--and $c_{ki} < 0$ indicates that molecule $m_i$ is a
+product--of reaction $k$.  The forward and reverse rate constants for
+reaction $k$ will be denoted as $f_k$ and $r_k$.
+
+The set of chemical reactions can thus be represented by a $R\times M$
+(often sparse) matrix $\mat{C} = \{ c_{ki} \}$ and the associated
+rates $\{ (f_k, r_k), k=1,2,\dots,R \}$.
+
+The reactive flux for the reaction $k$ is given by
+\begin{equation}
+J_k = f_k \prod_{j|c_{kj}>0} m_j^{c_{kj}} - r_k \prod_{j|c_{kj}<0} m_j^{-c_{kj}}
+\label{eqn:reaction-flux}
+\end{equation}
+
+And the flux of all the reactions can be represented by the vector 
+$\vec{J} = (J_1, J_2, \dots, J_R)^t$.
+
+The rate of change of the molecule $i$ is
+\begin{equation}
+\dot{m}_i = - \sum_{k=1}^R c_{ki} J_k 
+\end{equation}
+%
+or in matrix form
+\begin{equation}
+\dot{\vec{m}} = - \mat{C}^t\cdot \vec{J}
+\label{eqn:rate-of-change}
+\end{equation}
+
+Let $\mat{N} = \nullspace{\mat{C}}$ be the $M\times (M-\rank{\mat{C}})$
+matrix representing the null space of $\mat{C}$.  We have
+\begin{equation}
+\mat{N}^t \dot{\vec{m}} = -(\mat{C} \mat{N})^t \vec{J} = 0
+\end{equation}
+{\it i.e.},
+\begin{equation}
+\mat{N}^t \vec{m} = \mat{N}^t \vec{m}(t=0)
+\label{eqn:mass-conservation}
+\end{equation}
+is constant.  Eq.~\ref{eqn:mass-conservation} reflects the mass
+conservation.
+
+We are interested in the steady state, 
+\begin{equation}
+\mat{C}^t\cdot \vec{J} = -\dot{\vec{m}} = \vec{0}
+\label{eqn:steady-state}
+\end{equation}
+
+To reduce Eq.~\ref{eqn:steady-state} into linearly independent
+equations, consider the singular value decomposition $\mat{C} =
+\mat{U}\mat{\Sigma}\mat{V}^t$, where $\mat{\Sigma} = ( \diag{\sigma_1,
+  \sigma_2, \dots, \sigma_{\rank{\mat{C}}}}, \mat{0}_{R\times(M -
+  \rank{\mat{C}})} )$ is the diagonal matrix of the singular
+values. We will denote $\mat{\Sigma}_s = \diag{\sigma_1, \sigma_2,
+  \dots, \sigma_{\rank{\mat{C}}}}$ to be the
+$\rank{\mat{C}}\times\rank{\mat{C}}$ diagonal submatrix of
+$\mat{\Sigma}$.
+
+To derive the linearly independent equations for the steady state, let
+$\mat{U}_s = ( \vec{U}_1, \vec{U}_2, \dots, \vec{U}_{\rank{\mat{C}}} )$ be the
+$R\times\rank{\mat{C}}$ matrix whose column vectors $\{
+\vec{U}_{i=1,2,\dots, \rank{\mat{C}}} \}$ span the range of $\mat{C}$. From
+Eq. 7, we have
+\begin{eqnarray}
+\vec{0} &=& \mat{C}^t\cdot\vec{J} 
+\nonumber \\
+&=& \mat{V} \Sigma^t \mat{U}^t\cdot\vec{J}
+\nonumber \\
+&=& \mat{V} \left( \begin{array}{cc}
+  \mat{\Sigma}_s & \mat{0}_{\rank{\mat{C}}\times(R - \rank{\mat{C}})} \\
+  \mat{0}_{(M-\rank{\mat{C}})\times\rank{\mat{C}}} & \mat{0}_{(M-\rank{\mat{C}})\times(R - \rank{\mat{C}})} 
+\end{array} \right) 
+\left( 
+\begin{array}{c}
+\mat{U}_s^t \\
+\vec{U}_{\rank{\mat{C}} + 1}^t \\
+\vdots \\
+\vec{U}_R^t 
+\end{array} \right) \cdot\vec{J}
+\nonumber \\
+&=& \mat{V} \left(
+\begin{array}{c}
+\mat{\Sigma}_s \mat{U}_s^t\cdot\vec{J}\\
+\mat{0}_{(M-\rank{\mat{C}})\times R}
+\end{array} \right)
+\label{eqn:independent-ness-derivation}
+\end{eqnarray}
+   
+Because both $\mat{V}$ and $\mat{\Sigma}_s$ are full-rank, 
+invertible matrices, Eq.~\ref{eqn:independent-ness-derivation}
+implies
+\begin{equation}
+\mat{U}_s^t\cdot \vec{J} = 0
+\label{eqn:independent-ness}
+\end{equation}
+
+Eq.~\ref{eqn:independent-ness} represents $\rank{\mat{C}}$ independent
+equations, together with Eq.~\ref{eqn:mass-conservation}, which has
+$M-\rank{\mat{C}}$ independent equations, they make up $M$ independent
+equations for the steady state concentrations of the $M$ molecules.
+
+If $\rank{\mat{C}} = R$, $\mat{U}_s^t$ becomes a $R\times R$ square invertible
+matrix, and Eq.~\ref{eqn:independent-ness} implies
+\begin{equation}
+\vec{J} = \vec{0}
+\label{eqn:detailed-balance}
+\end{equation}
+which is the condition of detailed balance: the flux of each
+individual reaction is zero at the steady state.
+
+Solving the kinetics by Eq.~\ref{eqn:rate-of-change} or the steady state
+by Eq.~\ref{eqn:independent-ness} and Eq.~\ref{eqn:mass-conservation}
+require the computation of their derivatives with respect to the
+concentrations $\vec{m}$.  The derivative of $J_k$ w.r.t. $m_i$ is given by
+\begin{equation}
+\partial_i J_k \equiv \frac{\partial J_k}{\partial m_i}
+= f_k c_{ki}^{+} m_i^{-1} \prod_{j|c_{kj}>0} m_j^{c_{kj}} + r_k c_{ki}^{-} m_i^{-1} \prod_{j|c_{kj}<0} m_j^{-c_{kj}}
+\end{equation}
+where $c_{ki}^{+} > 0$ is the coefficient of $m_i$ on the reactant
+side of reaction $k$, and $c_{ki}^{-} < 0$ is its coefficient on the
+product side.  Note that the same molecule may appear on both sides of the
+same reaction.  These partial derivatives form the $R\times M$ Jacobian matrix 
+\begin{equation}
+(\partial_{\vec{m}} \vec{J})_{ki} = \{ \partial_i J_k \}
+\end{equation}
+
+The derivatives of Eq.~\ref{eqn:mass-conservation} with respect to $m_i$ is 
+staightforward:
+\begin{equation}
+\partial_{\vec{m}} \left(N^t \vec{m}\right) = \mat{N}^t \mat{I} = \mat{N}^t
+\end{equation}
+
+Often, we need to know how the steady state changes with respect to
+the rate constants $f_k$ and $r_k$, {\it e.g.}, when we want to fit
+the rate constants to the experimentally measured concentrations at
+steady states.  To obtain the derivative of the steady state
+concentrations w.r.t. a kinetic parameter $\theta$, we differentiate
+Eq.~\ref{eqn:mass-conservation} and Eq.~\ref{eqn:independent-ness}:
+\begin{eqnarray}
+\vec{0} &=& \mat{N}^t d_\theta \vec{m} 
+\nonumber \\
+\vec{0} &=& \mat{U}_s^t \cdot d_\theta \vec{J} = \mat{U}_s^t \cdot \left(
+  \partial_\theta \vec{J} + \partial_{\vec{m}}{\vec{J}} \cdot d_\theta \vec{m} \right) 
+\end{eqnarray}
+which yields the linear system of equations for $d_\theta \vec{m}$
+\begin{equation}
+\left( \begin{array}{c}
+\mat{N}^t \\
+\mat{U}_s^t\cdot \partial_{\vec{m}} \vec{J}
+\end{array} \right)\cdot d_\theta\vec{m} = 
+\left( \begin{array}{c}
+\vec{0}_{M-\rank{\mat{C}}} \\
+-\mat{U}_s^t\cdot \partial_\theta \vec{J}
+\end{array} \right)
+\label{eqn:ness-param-derivative}
+\end{equation}
+
+The partial derivatives of $J_{k'}$ with respect to $\theta = f_{k}$
+and $\theta = r_{k}$ are
+\begin{eqnarray}
+\partial_{f_{k}} J_{k'} &=& \delta_{kk'} \prod_{j|c_{kj}>0} m_j^{c_{kj}}
+\nonumber \\
+\partial_{r_{k}} J_{k'} &=& -\delta_{kk'} \prod_{j|c_{kj}<0} m_j^{-c_{kj}}
+\end{eqnarray}
+or in vector form:
+\begin{eqnarray}
+\partial_{f_{k}} \vec{J} &=& \prod_{j|c_{kj}>0} m_j^{c_{kj}} \vec{e}_k
+\nonumber \\
+\partial_{r_{k}} \vec{J} &=& -\prod_{j|c_{kj}<0} m_j^{-c_{kj}} \vec{e}_k
+\end{eqnarray}
+where $\vec{e}_k$ is the $k$'th column vector of the $R\times R$
+identity matrix.
+
+\section{Numerical considerations}
+
+The reaction rate constants--and the steady state concentrations--in a
+set of reactions sometimes span a few orders of magnitude.  This can
+lead to numerical instabilities in the solutions of
+Eq.~\ref{eqn:rate-of-change} and Eq.~\ref{eqn:steady-state}.  To ameliorate 
+the numerical problems, we scale the concentrations by
+%
+\begin{equation}
+m_i' = \alpha_i^{-1} m_i \text{ for }i=1,2,\dots,M
+\end{equation}
+
+The rate of change for $\vec{m}'$ is then
+\begin{equation}
+\dot{m}_i' = \alpha_i^{-1} \dot{m}_i = \alpha_i^{-1}\sum_{k=1}^R c_{ki}\left(f_k\prod_{j|c_{kj}>0} \alpha_j^{c_{kj}} \dot{m}_j'^{c_{kj}} - r_k\prod_{j|c_{kj}<0}\alpha_j^{-c_{kj}} \dot{m}_j^{-c_{kj}}\right)
+\label{eqn:scaled-rate-of-change}
+\end{equation}
+
+If $\{ m_i' \}$ are all of approximately the same order-of-magnitude, the numerical errors will be due to the disparaty in the scaled rate-of-constants
+\begin{equation}
+f_k' = f_k \prod_{j|c_{kj}>0} \alpha_j^{c_{kj}}
+\label{eqn:scaled-forward-rate}
+\end{equation}
+and
+\begin{equation}
+r_k' = r_k \prod_{j|c_{kj}<0} \alpha_j^{-c_{kj}}
+\label{eqn:scaled-reverse-rate}
+\end{equation}
+If they span different orders-of-magnitude, the numerical precision
+will be poor in computing differences between the forward and reverse
+fluxes and in computing the sum of the net fluxes across different
+reactions in Eq.~\ref{eqn:scaled-rate-of-change}.  
+
+We thus look for $\vec{\alpha} = (\alpha_1, \alpha_2, \dots,
+\alpha_M)^t$ that make all $f_k'$ and $r_k'$ of order 1, {\it i.e.}  
+\begin{eqnarray}
+\sum_{j|c_{kj}>0} c_{kj}\ln\alpha_j &=& -\ln f_k
+\nonumber \\
+\sum_{j|c_{kj}<0} c_{kj}\ln\alpha_j &=& \ln r_k
+\label{eqn:scaling-factors}
+\end{eqnarray}
+Or in matrix form
+\begin{equation}
+\left( \begin{array}{c}
+ \mat{C}^+ \\
+ \mat{C}^- \end{array} \right) \ln\vec{\alpha}
+= \left( \begin{array}{c}
+  -\ln \vec{f} \\
+  \ln \vec{r} \end{array} \right)
+\label{eqn:scaling-factors-matrix-equation}
+\end{equation}
+where $\mat{C}^+$ is the matrix of $\mat{C}$ with the negative
+elements set to zero, and $\mat{C}^-$ is the matrix of $\mat{C}$ with
+the positive elements set to zero.
+Eq.~\ref{eqn:scaling-factors-matrix-equation} can be solved by
+the standard least square solver.
+
+The equation for mass conservation (Eq.~\ref{eqn:mass-conservation})
+for the scaled concentration becomes
+\begin{equation}
+\mat{N}^t \diag{\vec{\alpha}} \vec{m}' = \mat{N}^t \vec{m} = \mat{N}^t\vec{m}(t=0)
+\label{eqn:scaled-mass-conservation}
+\end{equation}
+
+The kinetic equation (Eq.~\ref{eqn:rate-of-change}) becomes 
+\begin{equation}
+\dot{\vec{m}}' = -\diag{\alpha}^{-1} \mat{C}^t\cdot \vec{J}'
+\label{eqn:scaled-kinetics}
+\end{equation}
+
+So far, there is no evidence that this numerical stabilization makes
+any difference.
+\end{document}

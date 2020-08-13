@@ -37,4 +37,4 @@ ConfoNess was developed as the computational tool to enable these studies.
 
 ## How to use
 
-You can find usage examples in hsp90.py and the Jupyter notebook hsp90.ipynb.  
+You can find usage examples in [examples.py](https://github.com/forcefield/ConfoNess/blob/master/examples.py), [hsp90.py](https://github.com/forcefield/ConfoNess/blob/master/hsp90.py), and the Jupyter notebook [hsp90.ipynb](https://github.com/forcefield/ConfoNess/blob/master/hsp90.ipynb).

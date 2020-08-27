@@ -27,25 +27,35 @@ def reactants( rx, return_coeff=False):
 
     lhs, rhs = rx.split('=')
     lhs, rhs = lhs.split('+'), rhs.split('+')
-    if not has_coeff:
-        if not return_coeff:
-            return (lhs, rhs)
-        coeffs = [1]*len(lhs) + [-1]*len(rhs)
-        return (lhs, rhs), np.array(coeffs, dtype=int)
         
-    coeffs = np.zeros(len(lhs) + len(rhs), dtype=int)
-    n = 0
+    coeffmol = [ dict(), dict() ]
     rxtants, products = [], []
     for mols, rxmols, sgn in zip([ lhs, rhs ], [rxtants, products], [1, -1]):
+        side = (1 - sgn)/2 # 0 for left side and 1 for right side.
         for i, mol in enumerate( mols):
             d = mol.split( '*')
             if len(d) == 2:
-                coeffs[n] = sgn*float(d[0])
-                rxmols.append( d[1])
+                c, m = float(d[0]), d[1]
+                if coeffmol[side].has_key( m):
+                    coeffmol[side][m] += sgn*c
+                else:
+                    coeffmol[side][m] = sgn*c
+                    rxmols.append( m)
             else:
-                coeffs[n] = sgn
-                rxmols.append( d[0])
+                m = d[0]
+                if coeffmol[side].has_key( m):
+                    coeffmol[side][m] += sgn
+                else:
+                    coeffmol[side][m] = sgn
+                    rxmols.append( m)
+            
+    n = 0
+    coeffs = np.zeros(len(rxtants) + len(products), dtype=int)
+    for side, rxmols in enumerate([rxtants, products]):
+        for mol in rxmols:
+            coeffs[n] = coeffmol[side][mol]
             n += 1
+
     if return_coeff:
         return (rxtants, products), coeffs
     else:
@@ -444,7 +454,7 @@ def test_reaction_matrix( tol=1e-5):
     rxs = [
         'A + B2 + C = D + E',
         '2*B = B2',
-        'E = A + 2*B',
+        'E = A + 1*B + B',
         'D = C'
     ]
 

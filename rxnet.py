@@ -31,19 +31,19 @@ def reactants( rx, return_coeff=False):
     coeffmol = [ dict(), dict() ]
     rxtants, products = [], []
     for mols, rxmols, sgn in zip([ lhs, rhs ], [rxtants, products], [1, -1]):
-        side = (1 - sgn)/2 # 0 for left side and 1 for right side.
+        side = (1 - sgn)//2 # 0 for left side and 1 for right side.
         for i, mol in enumerate( mols):
             d = mol.split( '*')
             if len(d) == 2:
                 c, m = float(d[0]), d[1]
-                if coeffmol[side].has_key( m):
+                if m in coeffmol[side]:
                     coeffmol[side][m] += sgn*c
                 else:
                     coeffmol[side][m] = sgn*c
                     rxmols.append( m)
             else:
                 m = d[0]
-                if coeffmol[side].has_key( m):
+                if m in coeffmol[side]:
                     coeffmol[side][m] += sgn
                 else:
                     coeffmol[side][m] = sgn
@@ -280,12 +280,12 @@ def testCycleClosure( rxs, ks, tol=1e-9):
     for c, cycle in enumerate( rxcycles):
         symbol = symbolicReactionCycle( rxs, cycle)
         if np.abs( ddG[c]) > tol:
-            print 'FAIL: reaction cycle violates thermodynamic closure!'
+            print('FAIL: reaction cycle violates thermodynamic closure!')
             success = False
-        print symbol
-        print 'ddG = %g' % ddG[c]
+        print(symbol)
+        print('ddG = %g' % ddG[c])
     if success:
-        print 'SUCCESS: all reaction cycles satisfy thermodynamic closure.'
+        print('SUCCESS: all reaction cycles satisfy thermodynamic closure.')
     
     return success
 
@@ -353,11 +353,11 @@ def flux_network_as_graph( mols, J, n=None, epsilon=1e-15):
     '''
     g = nx.DiGraph()
     if (n is not None):
-        g.add_nodes_from( zip(mols, map(lambda w: {'weight': w}, n)))
+        g.add_nodes_from( list(zip(mols, [{'weight': w} for w in n])))
     else:
         g.add_nodes_from( mols)
     for i, mi in enumerate(mols):
-        for j in xrange(i+1, len(mols)):
+        for j in range(i+1, len(mols)):
             mj = mols[j]
             if (J[i,j] > epsilon):
                 g.add_edge( mi, mj, weight=J[i,j])
@@ -424,9 +424,9 @@ def pathway_free_energy_landscape( mols_in_path, rxs, ks, concs):
         pmol = set(products).intersection( molset)
         if len(rmol)==0 or len(pmol)==0: continue
         if len(rmol)>1:
-            raise ValueError, '%d mols appear on the reactant sides of reaction %s: %s' % (len(rmol), rx, ', '.join( list(rmol)))
+            raise ValueError('%d mols appear on the reactant sides of reaction %s: %s' % (len(rmol), rx, ', '.join( list(rmol))))
         if len(pmol)>1:
-            raise ValueError, '%d mols appear on the product sides of reaction %s: %s' % (len(pmol), rx, ', '.join( list(pmol)))
+            raise ValueError('%d mols appear on the product sides of reaction %s: %s' % (len(pmol), rx, ', '.join( list(pmol))))
         rmol = rmol.pop()
         pmol = pmol.pop()
         rid = mol2id[rmol]
@@ -475,9 +475,9 @@ def test_reaction_matrix( tol=1e-5):
     # print N
     # print mols
     if np.all(N == N0) and mols == mols0:
-        print 'Reaction matrix test PASSED!'
+        print('Reaction matrix test PASSED!')
     else:
-        print 'Reaction matrix test FAILED!'
+        print('Reaction matrix test FAILED!')
 
     # print reactionCycles( N)
 

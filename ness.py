@@ -11,6 +11,7 @@ from scipy.integrate import solve_ivp, cumtrapz
 from scipy.stats import linregress
 
 from rxnet import reactants, allMolecules
+from functools import reduce
 
 def flux_in_reaction( crx, krx, cmols):
     '''Compute the reactive flux in a given reaction.
@@ -111,7 +112,7 @@ def dflux_dcmol_Jacobian( Crx, krx, cmols):
 
     '''
     return np.array( [ dflux_dcmol( Crx[k,:], krx[k], cmols)
-                       for k in xrange(Crx.shape[0]) ])
+                       for k in range(Crx.shape[0]) ])
 
 def rate_of_change( Crx, krx, cmols):
     '''Compute the instantaneous rate of change for the molecules
@@ -138,7 +139,7 @@ def rate_of_change( Crx, krx, cmols):
     # Compute the reactive flux for each reaction
     R = Crx.shape[0]
     Jrx = np.array( [ flux_in_reaction( Crx[r], krx[r], cmols)
-                      for r in xrange(R) ])
+                      for r in range(R) ])
     # The rate of change is given by 
     # dm/dt = - C^t\cdot J
     dmdt = -Crx.T.dot( Jrx)
@@ -279,10 +280,10 @@ def ness( Crx, krx, mt0=None, U=None, S=None, Vh=None, Nh=None, Nhmt0=None,
         Nh = N.T
         
     if mt0 is not None and Nhmt0 is not None:
-        raise ValueError, 'Either mt0 or Nhmt0 should be supplied as the initial condition, but not both!'
+        raise ValueError('Either mt0 or Nhmt0 should be supplied as the initial condition, but not both!')
 
     if mt0 is None and Nhmt0 is None:
-        raise ValueError, 'Either mt0 or Nhmt0 must be supplied as the initial condition!'
+        raise ValueError('Either mt0 or Nhmt0 must be supplied as the initial condition!')
 
     if Nhmt0 is None:
         Nhmt0 = Nh.dot( mt0)
@@ -310,7 +311,7 @@ def ness( Crx, krx, mt0=None, U=None, S=None, Vh=None, Nh=None, Nhmt0=None,
     # and
     # Nh.dot( m) - Nh.dot( m(t=0)) = 0
     def eqss( m):
-        J = np.array( [flux_in_reaction( Crx[r], krx[r], m) for r in xrange(R)])
+        J = np.array( [flux_in_reaction( Crx[r], krx[r], m) for r in range(R)])
         residuals = np.zeros( M)
         nj = Ush.shape[0]
         residuals[:nj] = Ush.dot( J)
@@ -332,11 +333,11 @@ def ness( Crx, krx, mt0=None, U=None, S=None, Vh=None, Nh=None, Nhmt0=None,
 
     tol = 1e-10
     if (np.any( sol.x < -tol)):
-        raise ValueError, 'Negative concentrations encountered in NESS solution: min(cmol) = cmol[%d] = %f < %g' % (np.argmin( sol.x), np.min( sol.x), tol)
+        raise ValueError('Negative concentrations encountered in NESS solution: min(cmol) = cmol[%d] = %f < %g' % (np.argmin( sol.x), np.min( sol.x), tol))
  
     if (check_steady_state):
         dmdt = alphas*rate_of_change( Crx, krx, sol.x)
-        print 'max(|J|) = %g' % np.max( np.abs(dmdt))
+        print('max(|J|) = %g' % np.max( np.abs(dmdt)))
 
     sol.x *= alphas
     return sol
@@ -561,7 +562,7 @@ def fit_kinetic_rates_to_ness( Crx, kofy, dkdy, y0,
 
     def residuals( y):
         delta = np.zeros( (E, D))
-        for t in xrange( D):
+        for t in range( D):
             krx = kofy( y, t)
             mss = ness( Crx, krx, U=U, S=S, Vh=Vh, Nh=Nh, Nhmt0=Nhmt0s[t])
             delta[:,t] = Nexp.dot( mss.x) - Nexpms[:,t]
@@ -570,7 +571,7 @@ def fit_kinetic_rates_to_ness( Crx, kofy, dkdy, y0,
     def residuals_Jacobian( y):
         delta = np.zeros( (E, D))
         ddeltady = np.zeros( (E, D, len(y)))
-        for t in xrange( D):
+        for t in range( D):
             krx = kofy( y, t)
             mss = ness( Crx, krx, U=U, S=S, Vh=Vh, Nh=Nh, Nhmt0=Nhmt0s[t])
             # \delta = m - m_{exp}
@@ -645,7 +646,7 @@ def cumulative_consumption( Crx, ks, nCs, ts, mts):
 
     '''
     dCdts = np.array( [ consumption_rate( Crx, ks, nCs, mts[:,t])
-                        for t in xrange(len(ts))])
+                        for t in range(len(ts))])
     DeltaCt = cumtrapz( dCdts, ts, initial=0.)
     return DeltaCt
  
@@ -670,13 +671,13 @@ def test_dflux_dcmol( tol=1e-5):
     diffs = [ check_grad( lambda x: flux_in_reaction( crx, krx, x),
                           lambda x: dflux_dcmol( crx, krx, x),
                           c) for c in cmols ]
-    print 'Test dJ/dm: |dJ/dm - DJ/Dm| = %s' \
-        % ('(' + ','.join( map(str, diffs)) + ')')
+    print('Test dJ/dm: |dJ/dm - DJ/Dm| = %s' \
+        % ('(' + ','.join( map(str, diffs)) + ')'))
     if np.max( diffs) < tol:
-        print 'SUCCESS: dJ/dm test passed!'
+        print('SUCCESS: dJ/dm test passed!')
         return True
     else:
-        print 'FAIL: dJ/dm has an error of %g' % np.max( diffs)
+        print('FAIL: dJ/dm has an error of %g' % np.max( diffs))
         return False
 
 def test_rate_of_change_Jacobian( tol=1e-5):
@@ -690,13 +691,13 @@ def test_rate_of_change_Jacobian( tol=1e-5):
         check_grad( lambda x: rate_of_change( Crx, krx, x)[i],
                     lambda x: drate_of_change_dcmol_Jacobian( Crx, krx, x)[i],
                     cmols)
-        for i in xrange(len(cmols)) ]
-    print 'Test d(dm/dt)/dm: | d(dm/dt)/dm - D(dm/dt)/Dm | = %g' % np.max(diffs)
+        for i in range(len(cmols)) ]
+    print('Test d(dm/dt)/dm: | d(dm/dt)/dm - D(dm/dt)/Dm | = %g' % np.max(diffs))
     if np.max(diffs) < tol:
-        print 'SUCCESS: d(dm/dt)/dm test passed!'
+        print('SUCCESS: d(dm/dt)/dm test passed!')
         return True
     else:
-        print 'FAIL: d(dm/dt)/dm has an error of %g' % np.max(diffs)
+        print('FAIL: d(dm/dt)/dm has an error of %g' % np.max(diffs))
         return False
 
 def test_kinetics( dt=1e-4, tol=1e-5):
@@ -711,16 +712,16 @@ def test_kinetics( dt=1e-4, tol=1e-5):
     moftp = kinetics( Crx, krx, moft.y[:,-1], dt)
     DmDt = (moftp.y[:,-1] - moftp.y[:,0])/dt
     dmdt = rate_of_change( Crx, krx, 0.5*(moftp.y[:,-1] + moftp.y[:,0]))
-    print 'Testing solution of dm/dt...'
-    print '%25s' % 'dm/dt =', dmdt
-    print '%25s' % '(m(t+dt) - m(t))/dt =', DmDt
+    print('Testing solution of dm/dt...')
+    print('%25s' % 'dm/dt =', dmdt)
+    print('%25s' % '(m(t+dt) - m(t))/dt =', DmDt)
     diff = np.max( np.abs(DmDt - dmdt))
     diffrep = 'max(|dm(t)/dt - (m(t+dt)-m(t))/dt|) = %.3g' % diff
     if diff < tol:
-        print 'SUCCESS: m(t) agrees with dm/dt: %s < %g' % (diffrep, tol)
+        print('SUCCESS: m(t) agrees with dm/dt: %s < %g' % (diffrep, tol))
         return True
     else:
-        print 'FAIL: %s > %g' % (diffrep, tol)
+        print('FAIL: %s > %g' % (diffrep, tol))
         return False
 
 def test_ness( tol=1e-9):
@@ -755,7 +756,7 @@ def test_ness( tol=1e-9):
 
     Nhmt0 = Nh.dot( mt0)
 
-    print 'Testing solution to steady state...'
+    print('Testing solution to steady state...')
     success = True
     # Test two different initial conditions
     mss = ness( Crx, krx, mt0)
@@ -763,9 +764,9 @@ def test_ness( tol=1e-9):
     diff = np.max( np.abs( mss.x - mss1.x))
     report = 'Different representation of initial conditions max(|delta m|) = %.3g' % diff
     if (diff < tol):
-        print 'SUCCESS: %s < %g' % (report, tol)
+        print('SUCCESS: %s < %g' % (report, tol))
     else:
-        print 'FAIL: %s > %g' % (report, tol)
+        print('FAIL: %s > %g' % (report, tol))
         success = False
     
     # Also run the kinetics until we reach steady state.
@@ -785,17 +786,17 @@ def test_ness( tol=1e-9):
     diff = np.max( np.abs( dmdt))
     report = 'At steady state, max(|dm/dt|) = %.3g' % diff
     if (diff < tol):
-        print 'SUCCESS: %s < %g' % (report, tol)
+        print('SUCCESS: %s < %g' % (report, tol))
     else:
-        print 'FAIL: %s > %g' % (report, tol)
+        print('FAIL: %s > %g' % (report, tol))
         success = False
 
     diff = np.max( np.abs(moft.y[:,-1] - mss.x))
     report = 'Solution to dm/dt = 0 differs from m(t=\inf) by %.3g' % diff
     if (diff < tol):
-        print 'SUCCESS: %s < %g' % (report, tol)
+        print('SUCCESS: %s < %g' % (report, tol))
     else:
-        print 'FAIL: %s > %g' % (report, tol)
+        print('FAIL: %s > %g' % (report, tol))
         success = False
 
     return success
@@ -823,29 +824,29 @@ def test_dness_dkinetic_rate( tol=1e-7):
         Nh = np.array( [ [ 1, 1, 2, 2 ] ])
 
     def mofk( x):
-        krx = np.array( [ [ x[2*r], x[2*r+1] ] for r in xrange(len(x)/2) ])
+        krx = np.array( [ [ x[2*r], x[2*r+1] ] for r in range(len(x)//2) ])
         mss = ness( Crx, krx, mt0)
         return mss.x
 
     def dmofk( x):
-        krx = np.array( [ [ x[2*r], x[2*r+1] ] for r in xrange(len(x)/2) ])
+        krx = np.array( [ [ x[2*r], x[2*r+1] ] for r in range(len(x)//2) ])
         theta = reduce( lambda x, y: x + y,
-                        [ [ (r, 0), (r, 1) ] for r in xrange(len(x)/2) ])
+                        [ [ (r, 0), (r, 1) ] for r in range(len(x)//2) ])
         m = ness( Crx, krx, mt0).x
         dmdk = dness_dkinetic_rates( Crx, krx, m, theta)
         return dmdk
 
-    print 'Testing dm/dtheta...'
+    print('Testing dm/dtheta...')
 
     diffs = [ check_grad( lambda x: mofk( x)[i], lambda x: dmofk( x)[i],
-                          krx.flatten()) for i in xrange(len(mt0)) ]
+                          krx.flatten()) for i in range(len(mt0)) ]
     diff = np.max( diffs)
     report = '| dm/dtheta - Dm/Dtheta | = %g' % diff
     if diff < tol:
-        print 'SUCCESS: %s < %g' % (report, tol)
+        print('SUCCESS: %s < %g' % (report, tol))
         return True
     else:
-        print 'FAIL: %s > %g' % (report, tol)
+        print('FAIL: %s > %g' % (report, tol))
         return False
 
 def test_fit_ness_to_data( tol=1e-5):
@@ -899,12 +900,12 @@ def test_fit_ness_to_data( tol=1e-5):
     gamma0 = 1.2
     y0 = np.array([ krx0[r,d] for r, d in theta ] + [gamma0])
 
-    initmt0s = [ None for t in xrange(npts) ]
+    initmt0s = [ None for t in range(npts) ]
 
     mtod = np.array( [ [ 0, 1, 0, 2 ] ])
     data = [ 
         ness(Crx, kofy(y0[:3], t), U=U, S=S, Vh=Vh, Nh=Nh, Nhmt0=Nhmt0s[:,t]).x
-        for t in xrange( npts) ]
+        for t in range( npts) ]
     data = np.array( data).T
     data = gamma0*mtod.dot( data).flatten()
 
@@ -931,23 +932,23 @@ def test_fit_ness_to_data( tol=1e-5):
         jac[-1] = md
         return jac
 
-    print 'Testing fitting kinetic parameters to steady state data...'
+    print('Testing fitting kinetic parameters to steady state data...')
 
     success = True
     diffs = np.array( [ check_grad( lambda y: residual(y, t), 
                                     lambda y: residual_jac(y, t), y0)
-                        for t in xrange( npts) ])
+                        for t in range( npts) ])
     diff = np.max( diffs)
     report = 'Jacobian of residual from data: |d - D| = %g' % diff
     if diff < tol:
-        print 'SUCCESS: %s < %g' % (report, tol)
+        print('SUCCESS: %s < %g' % (report, tol))
     else:
-        print 'FAIL: %s > %g' % (report, tol)
+        print('FAIL: %s > %g' % (report, tol))
         success = False
     
-    result = least_squares(lambda y: [residual(y, t) for t in xrange( npts)],
+    result = least_squares(lambda y: [residual(y, t) for t in range( npts)],
                            y0*(1 + 0.5*(np.random.rand( len(y0))-0.5)),
-                           lambda y: [residual_jac(y, t) for t in xrange(npts)],
+                           lambda y: [residual_jac(y, t) for t in range(npts)],
                            method='lm')
 
     success &= result.success
@@ -955,9 +956,9 @@ def test_fit_ness_to_data( tol=1e-5):
     diff = np.max( np.abs( diffs))
     report = 'Fit parameters differ from reference: %g' % diff
     if diff < tol:
-        print 'SUCCESS: %s < %g' % (report, tol)
+        print('SUCCESS: %s < %g' % (report, tol))
     else:
-        print 'FAIL: %s > %g' % (report, tol)
+        print('FAIL: %s > %g' % (report, tol))
         success = False
                            
     return success
@@ -1029,9 +1030,9 @@ def test_consumption( tol=2e-3):
     report = 'max(|ATP_exact(t) - ATP_solve(t)|) = %g' % delta
     success = True
     if (delta <= tol):
-        print 'SUCCESS: %s <= %g' % (report, tol)
+        print('SUCCESS: %s <= %g' % (report, tol))
     else:
-        print 'FAIL: %s > %g' % (report, tol)
+        print('FAIL: %s > %g' % (report, tol))
         success = False
 
     return success
@@ -1039,25 +1040,25 @@ def test_consumption( tol=2e-3):
 def unit_test():
     sep = '='*60
     success = True
-    print sep
+    print(sep)
     success &= test_dflux_dcmol()
-    print sep
+    print(sep)
     success &= test_rate_of_change_Jacobian()
-    print sep
+    print(sep)
     success &= test_kinetics()
-    print sep
+    print(sep)
     success &= test_ness()
-    print sep
+    print(sep)
     success &= test_dness_dkinetic_rate()
-    print sep
+    print(sep)
     success &= test_fit_ness_to_data()
-    print sep
+    print(sep)
     success &= test_consumption()
 
     if success:
-        print 'All unit tests passed!'
+        print('All unit tests passed!')
     else:
-        print 'Some unit tests failed!'
+        print('Some unit tests failed!')
 
 if __name__ == '__main__':
     unit_test()

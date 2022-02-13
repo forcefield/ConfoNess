@@ -4,6 +4,7 @@ Utilities for analyzing conformational changes.
 
 import numpy as np
 from rxnet import *
+from functools import reduce
 
 def mass_equations( mols, not_conserved=None, delimiter='_'):
     '''
@@ -33,8 +34,8 @@ def mass_equations( mols, not_conserved=None, delimiter='_'):
         '''
         # Remove the branch binding indicators.
         mol = mol.replace( '(', '').replace( ')', '')
-        return filter( None, [ c.lstrip(r'0123456789').split( delimiter)[0] 
-                               for c in mol.split( '.') ])
+        return [_f for _f in [ c.lstrip(r'0123456789').split( delimiter)[0] 
+                               for c in mol.split( '.') ] if _f]
     
     molcomps = [ components(m) for m in mols ]
     allcomps = set( reduce( lambda x, y: x + y, molcomps))
@@ -77,7 +78,7 @@ def symbolic_mass_equations( masseq, mols, components):
     def symbolic_eq( eq):
         return ' + '.join( [ 
             ('' if eq[i]==1 else str(eq[i])) + ('[%s]' % mols[i]) 
-            for i in xrange(len(mols)) if eq[i] != 0 ])
+            for i in range(len(mols)) if eq[i] != 0 ])
 
     masseqsymbol = []
     for c, eq in enumerate( masseq):
@@ -124,7 +125,7 @@ def driven_conformer_rxs( rxs, ks, concs, cstmols):
     cstconcs = [(molid[m], concs[m]) for m in cstmols]
     
     Crx, ks = reactionsWithConstMols( Crx0, ks, cstconcs)
-    mols = filter( lambda m: m not in cstmols, mols)
+    mols = [m for m in mols if m not in cstmols]
     Nh, comps = mass_equations( mols, cstmols)
     Nhmt0 = np.array( [ concs[c] for c in comps ])
 
@@ -162,9 +163,9 @@ def test_mass_equations():
     eq, comps = mass_equations( mols, ['ADP', 'ATP'])
     symbolic = symbolic_mass_equations( eq, mols, comps)
     for se in symbolic:
-        print se
+        print(se)
 
-    print 'Conserved components are', comps
+    print('Conserved components are', comps)
     success = True
     
     eq0 = dict(M=[ 1, 1, 1, 1, 1, 1, 1, 1, 0, 0 ],
@@ -172,13 +173,13 @@ def test_mass_equations():
     
     Nh = np.array( [ eq0[c] for c in comps ])
     
-    print 'Nh0 = \n', Nh
-    print 'Nh = \n', eq
+    print('Nh0 = \n', Nh)
+    print('Nh = \n', eq)
     if np.any(eq - Nh):
-        print 'FAIL: Conservation equation disagree with expected.'
+        print('FAIL: Conservation equation disagree with expected.')
         success = False
     else:
-        print 'SUCCESS: Conservation equation agrees with the expected.'
+        print('SUCCESS: Conservation equation agrees with the expected.')
 
     return success
 

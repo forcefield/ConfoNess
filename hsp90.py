@@ -1,5 +1,5 @@
 import numpy as np
-import cPickle as pickle
+import pickle as pickle
 from scipy.linalg import svd, lstsq
 from scipy.optimize import check_grad
 from scipy.optimize import least_squares
@@ -294,7 +294,7 @@ def ATP_cochaperone_conformational_cycle( rates, include_AHA1=False):
     if (include_AHA1):
         ksrx = add_AHA1_to_hsp90_cycle( ksrx, rates)
 
-    rxs = ksrx.keys()
+    rxs = list(ksrx.keys())
     return rxs, np.array( [ksrx[rx] for rx in ksrx])
 
 def add_AHA1_to_hsp90_cycle( ksrx, rates):
@@ -438,7 +438,7 @@ def ness_vs_krx( rates, concs, rx, krx):
     mt0 = None
     for t, k in enumerate(krx):
         if isinstance( rx, list):
-            _rates = dict( rates, **dict( zip(rx, k)))
+            _rates = dict( rates, **dict( list(zip(rx, k))))
         else:
             _rates = dict( rates, **{rx: k})
         Keq = KeqFromRXCycle( _rates, 
@@ -496,7 +496,7 @@ def ness_vs_concs( rates, concs, components, ccs):
     noneq = np.zeros( len(ccs))
     for t, cs in enumerate(ccs):
         tinit = 10.
-        _concs = dict( concs, **dict( zip(components, [cs]*len(components))))
+        _concs = dict( concs, **dict( list(zip(components, [cs]*len(components)))))
         Crx, ks, Nh, cc, mols, cmps = ATP_driven_conformer_rxs(rxs, ks0, _concs)
         mss = ness( Crx, ks, U=U, S=S, Vh=Vh, Nh=Nh, Nhmt0=cc, tinit=tinit)   
         cmols[t,:] = mss.x
@@ -536,7 +536,7 @@ def dATP_vs_krx( rates, concs, rx, krx):
     mt0 = None
     for t, k in enumerate(krx):
         if isinstance( rx, list):
-            _rates = dict( rates, **dict( zip(rx, k)))
+            _rates = dict( rates, **dict( list(zip(rx, k))))
         else:
             _rates = dict( rates, **{rx: k})
         rxs, ks = ATP_cochaperone_conformational_cycle( _rates, include_AHA1)
@@ -584,7 +584,7 @@ def dATP_vs_concs( rates, concs, components, ccs):
     dATP = np.zeros( len(ccs))
     for t, cs in enumerate(ccs):
         tinit = 10.
-        _concs = dict( concs, **dict( zip(components, [cs]*len(components))))
+        _concs = dict( concs, **dict( list(zip(components, [cs]*len(components)))))
         Crx, ks, Nh, cc, mols, cmps = ATP_driven_conformer_rxs(rxs, ks0, _concs)
         mss = ness( Crx, ks, U=U, S=S, Vh=Vh, Nh=Nh, Nhmt0=cc, tinit=tinit)   
         mt0 = mss.x
@@ -619,12 +619,12 @@ def state_distribution( cmols, molid):
     and ADP-bound closed states of Hsp90.
     '''
     states = [ 'H_O', 'H_O.ATP', 'H_C.ATP', 'H_C.ADP' ]
-    mols = molid.keys()
+    mols = list(molid.keys())
     statemols = {
-        'H_O': filter( lambda m: 'H_O' in m and 'H_O.ATP' not in m, mols),
-        'H_O.ATP': filter( lambda m: 'H_O.ATP' in m, mols),
-        'H_C.ATP': filter( lambda m: 'H_C.ATP' in m, mols),
-        'H_C.ADP': filter( lambda m: 'H_C.ADP' in m, mols) }
+        'H_O': [m for m in mols if 'H_O' in m and 'H_O.ATP' not in m],
+        'H_O.ATP': [m for m in mols if 'H_O.ATP' in m],
+        'H_C.ATP': [m for m in mols if 'H_C.ATP' in m],
+        'H_C.ADP': [m for m in mols if 'H_C.ADP' in m] }
 
     ndim = cmols.ndim
     if 1==ndim:
@@ -648,7 +648,7 @@ def ATP_cochaperone_conformational_cycle_layout():
     for m in rmol: rmol[m] = np.array( rmol[m])
 
     dr = np.array( [ 0.65, 0.])
-    for i, ri in rmol.items():
+    for i, ri in list(rmol.items()):
         a = i.replace('M_d', 'M_m')
         rmol[a] = dr + ri
 
@@ -752,7 +752,7 @@ def fit_to_normalized_client_activity( outpkl):
     U, S, Vh = svd( Crx)
     
     for r, k in zip( rxs, ks):
-        print r, k
+        print(r, k)
 
     kofyfunc = lambdify( tuple(ys), ks, 'numpy')
 
@@ -776,7 +776,7 @@ def fit_to_normalized_client_activity( outpkl):
         return dkvals
 
     tinit = 10.
-    mt0s = [ None for t in xrange( npts) ]
+    mt0s = [ None for t in range( npts) ]
 
     def activity( y, t):
         ks = kofy( y)
@@ -810,9 +810,9 @@ def fit_to_normalized_client_activity( outpkl):
                        np.log(ys0))
     report = 'Gradient check for activity %g' % diff
     if (diff<tol):
-        print 'SUCCESS: %s < %g' % (report, tol)
+        print('SUCCESS: %s < %g' % (report, tol))
     else:
-        print 'FAIL: %s > %g' % (report, tol)
+        print('FAIL: %s > %g' % (report, tol))
 
     def residual( lny, t):
         y = np.exp( lny)
@@ -834,17 +834,17 @@ def fit_to_normalized_client_activity( outpkl):
                        np.log(ys0))
     report = 'Gradient check for residual %g' % diff
     if (diff<tol):
-        print 'SUCCESS: %s < %g' % (report, tol)
+        print('SUCCESS: %s < %g' % (report, tol))
     else:
-        print 'FAIL: %s > %g' % (report, tol)
+        print('FAIL: %s > %g' % (report, tol))
 
-    result = least_squares( lambda ly: [residual(ly, t) for t in xrange(npts)],
+    result = least_squares( lambda ly: [residual(ly, t) for t in range(npts)],
                             np.log(ys0),
-                            lambda ly: [dresidual(ly, t) for t in xrange(npts)],
+                            lambda ly: [dresidual(ly, t) for t in range(npts)],
                             method = 'trf')
 
     result.x = np.exp(result.x)
-    print result
+    print(result)
     pickle.dump( result, file( outpkl, 'wb'))
     return result
 
@@ -852,15 +852,15 @@ def test_ATP_cochaperone_conformational_cycle( Q, H, AHA1=0):
     include_AHA1 = (AHA1>0)
     rates = BASE_RATES
     rxs, ks = ATP_cochaperone_conformational_cycle( rates, include_AHA1)
-    ksrx = dict( zip(rxs, ks))
-    rxs_sorted = ksrx.keys()
+    ksrx = dict( list(zip(rxs, ks)))
+    rxs_sorted = list(ksrx.keys())
     rxs_sorted.sort()
-    print '%d reactions in total:' % len(rxs_sorted)
+    print('%d reactions in total:' % len(rxs_sorted))
     for rx in rxs_sorted:
         kf, kr = ksrx[rx]
-        print '%25s %.3e %.3e' % (rx, kf, kr)
+        print('%25s %.3e %.3e' % (rx, kf, kr))
 
-    print 'Testing ATP cycle'
+    print('Testing ATP cycle')
     atpcycle = [ 'H_O+ATP=H_O.ATP',
                  'H_O.ATP=H_C.ATP',
                  'H_C.ATP=H_C.ADP+Pi',
@@ -869,7 +869,7 @@ def test_ATP_cochaperone_conformational_cycle( Q, H, AHA1=0):
     testCycleClosure( atpcycle + [ 'ATP=ADP+Pi' ],
                       np.concatenate( [kscycle, [ (ATP_HYDROLYSIS_KEQ, 1.) ]]))
 
-    print 'Testing d-to-m pathway cycle'
+    print('Testing d-to-m pathway cycle')
     dtom = [ 'M_d+H_O=M_d.H_O',
              'M_d.H_O+ATP=M_d.H_O.ATP',
              'M_d.H_O.ATP=M_d.H_C.ATP',
@@ -882,7 +882,7 @@ def test_ATP_cochaperone_conformational_cycle( Q, H, AHA1=0):
     testCycleClosure( dtom + [ 'ATP=ADP+Pi' ],
                       np.concatenate( [ksdtom, [ (ATP_HYDROLYSIS_KEQ, 1.) ]]))
     
-    print 'Testing all reactions'
+    print('Testing all reactions')
     testCycleClosure( rxs + [ 'ATP=ADP+Pi' ], 
                       np.concatenate( [ks, [ (ATP_HYDROLYSIS_KEQ, 1.) ]]))
 
@@ -896,17 +896,17 @@ def test_ATP_cochaperone_conformational_cycle( Q, H, AHA1=0):
     if include_AHA1: concs.update( **{'A': AHA1})
 
     neq, c, molid = ATP_cochaperone_driven_conformational_noneq( rates, concs)
-    for m in molid: print '[%s] = %g' % (m, c[molid[m]])
+    for m in molid: print('[%s] = %g' % (m, c[molid[m]]))
     pstates = state_distribution( c, molid)
-    for s in pstates: print 'p(%s) = %g' % (s, pstates[s])
+    for s in pstates: print('p(%s) = %g' % (s, pstates[s]))
 
-    print 'ATP and cochaperone-driven conformational nonequilibrium: %f' % neq
-    print '[Active]=%.3g' % c[molid['M_a']]
+    print('ATP and cochaperone-driven conformational nonequilibrium: %f' % neq)
+    print('[Active]=%.3g' % c[molid['M_a']])
     return
     for m in molid:
-        print m, c[molid[m]]
+        print(m, c[molid[m]])
     for rx, k in zip(rxs, ks):
-        print rx, k
+        print(rx, k)
 
 import argparse
 

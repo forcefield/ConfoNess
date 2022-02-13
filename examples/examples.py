@@ -43,7 +43,7 @@ def ATP_driven_conformational_cycle( kIA, shift, kATP):
     kf, kr = ksrx[rx]
     ksrx[rx] = (kf, kf/Kh)
 
-    rxs = ksrx.keys()
+    rxs = list(ksrx.keys())
     return rxs, np.array( [ksrx[rx] for rx in ksrx])
 
 def ATP_driven_conformational_cycle_layout():
@@ -100,19 +100,19 @@ def test_ATP_driven_conformational_cycle( tol=1e-9):
     diff = np.max( np.abs( diffs))
     report = 'dm/dt for driven reactions computed two ways: delta = %g' % diff
     if diff < tol:
-        print 'SUCCESS: %s < %g' % (report, tol)
+        print(('SUCCESS: %s < %g' % (report, tol)))
     else:
-        print 'FAIL: %s > %g' % (report, tol)
+        print(('FAIL: %s > %g' % (report, tol)))
         success = False
 
     c, mols, noneq = ATP_driven_conformational_noneq( kIA, shift, kATP, concs)
-    print 'ATP-driven conformational nonequilibrium: %f' % noneq
+    print(('ATP-driven conformational nonequilibrium: %f' % noneq))
             
     return success
 
 if __name__ == '__main__':
     sep = '='*60
-    print 'Testing ATP-driven conformational cycle...'
+    print('Testing ATP-driven conformational cycle...')
     test_ATP_driven_conformational_cycle()
-    print sep
+    print(sep)
     

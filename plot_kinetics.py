@@ -92,10 +92,10 @@ def plot_reaction_network( mols, mpos, kij, chirality=dict(),
     height = width*ratio
 
     # Determine the appropriate k0 and scaling factor for arrow lengths.
-    kfs = map(lambda k: k[2], kij)
-    krs = map(lambda k: k[3], kij)
-    kfs = filter(lambda k: k>0, kfs)
-    krs = filter(lambda k: k>0, krs)
+    kfs = [k[2] for k in kij]
+    krs = [k[3] for k in kij]
+    kfs = [k for k in kfs if k>0]
+    krs = [k for k in krs if k>0]
     kkmax = max(max(kfs), max(krs))
     kkmin = min(min(kfs), min(krs))
 
@@ -178,7 +178,7 @@ def plot_reaction_network( mols, mpos, kij, chirality=dict(),
                        'fontweight': 'normal', 'fontsize': 24,
                        'color': '#377eb8'}
         if (isinstance(label_nodes, list)):
-            labeled = filter( lambda (i, m): m in label_nodes, enumerate(mols))
+            labeled = [i_m for i_m in enumerate(mols) if i_m[1] in label_nodes]
         else:
             labeled = enumerate(mols)
         for i, m in labeled:
@@ -295,7 +295,7 @@ def plot_reaction_flux( mols, mpos, n, J, ax, label_nodes=[],
     nx.draw_networkx_labels( g, pos=mpos, labels=labels, ax=ax, font_color=colors[1], font_weight='bold')
     nx.draw_networkx_edges( g, pos=mpos, ax=ax, arrows=False, width=edgewidth)
     if (highlights):
-        nohilite = filter( lambda e: not e in highlights and not (e[1], e[0]) in highlights, g.edges())
+        nohilite = [e for e in g.edges() if not e in highlights and not (e[1], e[0]) in highlights]
         nx.draw_networkx_edges( g, pos=mpos, edgelist=nohilite, ax=ax,
                                 arrows=True,
                                 edge_color=colors[2], width=arrow_width)

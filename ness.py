@@ -412,6 +412,36 @@ def dness_dkinetic_rates( Crx, krx, cmols, theta,
     
     return dmdtheta
 
+def kofy_and_dkdy( ks, ys):
+    '''
+    If the rate constants k are funtions of some parameters y, construct the
+    function k(y) and its derivatives dk/dy.
+    '''
+    from sympy import symbols, lambdify, diff
+
+    kofyfunc = lambdify( tuple(ys), ks, 'numpy')
+    
+    # Find the non-zero dk/dy, store them as tuples (r, d, j, dk[r,d]/dy[j])
+    nzdkdys = []
+    for r, k in enumerate( ks):
+        # go through forward and reverse
+        for d, kd in enumerate( k):
+            for j, y in enumerate( ys):
+                grad = diff( kd, y)
+                if grad == 0: continue
+                nzdkdys.append( (r, d, j, lambdify( ys, grad)))
+
+    # print nzdkdys
+    def kofy( y):
+        return np.array( kofyfunc( *tuple(y)))
+        
+    def dkdy( y):
+        dkvals = [ (r, d, j, dk( *tuple(y))) 
+                   for r, d, j, dk in nzdkdys ]
+        return dkvals
+
+    return kofy, dkdy
+    
 def dness_dy( Crx, kofy, dkdy, ny, cmols, U, S, Vh, Nh): 
     '''Jacobian of the molecular concentrations at steady state with
     respect to some parameters y.

@@ -3,7 +3,7 @@ import pickle as pickle
 from scipy.linalg import svd, lstsq
 from scipy.optimize import check_grad
 from scipy.optimize import least_squares
-from ness import ness, kinetics, dness_dy
+from ness import ness, kinetics, dness_dy, kofy_and_dkdy
 from ness import consumption_rate
 from rxnet import KeqFromk, KeqFromRXCycle, testCycleClosure, reactionMatrix
 from rxnet import reactionsWithConstMols
@@ -754,26 +754,7 @@ def fit_to_normalized_client_activity( outpkl):
     for r, k in zip( rxs, ks):
         print(r, k)
 
-    kofyfunc = lambdify( tuple(ys), ks, 'numpy')
-
-    # Find the non-zero dk/dy, store them as tuples (r, d, j, dk[r,d]/dy[j])
-    nzdkdys = []
-    for r, k in enumerate( ks):
-        # go through forward and reverse
-        for d, kd in enumerate( k):
-            for j, y in enumerate( ys):
-                grad = diff( kd, y)
-                if grad == 0: continue
-                nzdkdys.append( (r, d, j, lambdify( ys, grad)))
-
-    # print nzdkdys
-    def kofy( y):
-        return np.array( kofyfunc( y[0], y[1], y[2], y[3], y[4], y[5]))
-        
-    def dkdy( y):
-        dkvals = [ (r, d, j, dk( y[0], y[1], y[2], y[3], y[4], y[5])) 
-                   for r, d, j, dk in nzdkdys ]
-        return dkvals
+    kofy, dkdy = kofy_and_dkdy( ks, ys)
 
     tinit = 10.
     mt0s = [ None for t in range( npts) ]
@@ -845,7 +826,7 @@ def fit_to_normalized_client_activity( outpkl):
 
     result.x = np.exp(result.x)
     print(result)
-    pickle.dump( result, file( outpkl, 'wb'))
+    pickle.dump( result, open( outpkl, 'wb'))
     return result
 
 def test_ATP_cochaperone_conformational_cycle( Q, H, AHA1=0):

@@ -1,4 +1,5 @@
 from atomsel import atomsel
+from functools import reduce
 
 def overlap_residues( asegs, asel, mola, bsegs, bsel, molb):
     '''
